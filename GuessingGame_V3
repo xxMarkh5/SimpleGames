@@ -1,0 +1,719 @@
+
+
+<!DOCTYPE html>
+<!--Feel Free To See How It Works-->
+<!--I Would Appreciate You Not Copying This Whole Thing..-->
+<!--Approximate Time Spent: (6 + 12 + 6)hrs-->
+<html>
+	<head>
+		<title>
+			Guessing Game [V3]
+		</title>
+
+		<style>
+			body {
+				padding: 25px 0;
+				border: 5px solid #000000;
+				text-align: center;
+				background-color: #ffffff;
+				justify-content: center;
+                font-size: 12px;
+			}
+
+			.buttonGroup button {
+				background-color: #bbbbbb; /* Background */
+				border: 0px solid #eeeeee; /*  border */
+				color: #ffffff; /* White text */
+				cursor: pointer; /* Pointer/hand icon */
+				width: 87.5%; /* Set a width if needed */
+				padding: 15px;
+/*				font-size: 16px;*/
+				margin: 1%;
+/*				-webkit-transition-duration: 0.4s; /* Safari */
+				transition-duration: 0.125s;
+/*				display: none; /* Make the buttons appear below each other */
+			}
+/*
+			.buttonGroup button:not(:last-child) {
+				border-bottom: none; /* Prevent double borders */
+/*			}*/
+
+			/* Add a background color on hover */
+
+			.buttonGroup button:hover {
+				background-color: #AAAAAA;
+				box-shadow: 0 6px 6px 0 rgba(0.1,0.1,0.1,0.1),0 6px 6px 0 rgba(0.1,0.1,0.1,0.1);
+			}
+
+			#notify {
+				position: fixed;
+				display: none;
+				width: 100%;
+				height: 30px;
+				top: 20px;
+				left: 0%;
+				right: 0;
+				background-color: rgba(96,191,255,1);
+				box-shadow:  0 0 4px 2px rgba(96,191,255,1);
+				z-index: Infinity;
+				cursor: pointer;
+				filter: blur(0.5px);
+				text-align: inherit;
+				font-size: 30px;
+				font-family: Lucida Console;
+			}
+
+		</style>
+
+	</head>
+	<body onLoad = "setUp(); loadStatsSaves()">
+<!--Notify-->
+		<div id = "notify" onclick = "notifyExecute(false)">
+			Notification
+		</div>
+
+<!--Content Start-->
+		<font size = "1" face = "Comic Sans MS">
+        	Markh5
+        </font>
+<br/>
+		<font size = "6" face = "Verdana">
+			Guessing Game
+		</font>
+<br/>
+		<font size = "4" face = "Trebuchet MS" id = "status">
+			Home
+		</font>
+<br/>
+		<font size = "4" face = "Trebuchet MS" id = "console">
+			V3
+		</font>
+<br/>
+		<h3>
+			<div align = "center" class = "buttonGroup">
+
+				<div id = "Home_Status">
+					<button id = "Start" onclick = "start()" display = "block">
+						<font size = "6" face = "Arial Black">
+							Start
+						</font>
+					</button>
+
+					<button id = "Customize" onclick = "customize()">
+						<font size = "6" face = "Arial Black">
+							Customize
+                    	</font>
+					</button>
+
+					<button id = "Help" onclick = "help()">
+						<font size = "6" face = "Arial Black">
+							Help
+						</font>
+					</button>
+
+					<button id = "Settings" onclick = "settings()">
+						<font size = "6" face = "Arial Black">
+							Settings
+						</font>
+					</button>
+				</div>
+
+				<div id = "Customize_Status">
+					<input type = "text" id = "TotalLevels" placeholder = "Total Levels" onkeypress = "return isNumber(event)" />
+<br/>
+					<button id = "ConfirmTotalLevels" onclick = "customize_Total_Levels()">
+						Confirm Total Levels
+					</button>
+<br/>
+					<input type = "text" id = "TotalButtons" placeholder = "Total Buttons" onkeypress = "return isNumber(event)" />
+<br/>
+					<button id = "ConfirmTotalButtons" onclick = "customize_Total_Buttons()">
+						Confirm Total Buttons
+					</button>
+
+					<button id = "CreateNewCombination" onclick = "customize_Create()">
+						Create New Combination
+					</button>
+
+					<button id = "Home" onclick = "home()">
+						Home
+					</button>
+				</div>
+
+				<div id = "Help_Status">
+					<button id = "Home" onclick = "home()">
+						Home
+					</button>
+				</div>
+
+				<div id = "Settings_Status">
+					<button id = "Home" onclick = "home()">
+						Home
+					</button>
+				</div>
+
+				<div id = "Restart_Status">
+					<button id = "Home" onclick = "home()">
+						Home
+					</button>
+				</div>
+
+				<div id = "End_Status">
+					<button id = "Home" onclick = "home()">
+						Home
+					</button>
+				</div>
+
+				<div id = "GameButtons_Status">
+                    <button id = "Reveal Hint" onclick = "revealHint()">
+						Reveal Hint
+					</button>
+					<button id = "1" onclick = "check(this.id)">
+						1
+					</button>
+                </div>
+
+			</div>
+		</h3>
+
+		<h3 id="stopWatchOutput" face = "Trebuchet MS">
+			<span id="minutes">0</span> : <span id="seconds">00</span> :  <span id="milliSeconds">000</span>
+		</h3>
+
+		<h3 id="timeOutputHighScore" face = "Trebuchet MS">Saved High Score Info Will Show Up Here.</h3>
+
+		<h3 id="attemptsOutput" face = "Trebuchet MS">Saved Attempt(s) Will Show Up Here.</h3>
+
+		<h3 id="gamesCompletedOutput" face = "Trebuchet MS">Saved Game(s) Completed Will Show Up Here.</h3>
+
+<!--Content End-->
+
+<!--Javascript Start-->
+		<script>
+//Scope
+            var currentLevel = {};
+			var totalLevels = {};
+			var totalButtons = {};
+			var levelInfo = [];
+			var hintsUsed = {};
+
+//Checks If Correct
+			function check(id) {
+				if (document.getElementById("status").innerHTML === "Game") {
+					notifyExecute(false)
+					if (currentLevel <= totalLevels) {
+						if (Number(id) === Number(levelInfo[currentLevel])) {
+							notifyExecute(true, 1000, "Correct!" + Number(id) + "=" + Number(levelInfo[currentLevel]));
+							if (currentLevel === totalLevels) {
+								end();
+							} else {
+								currentLevel = currentLevel + 1
+								document.getElementById("console").innerHTML = "Level: " + (currentLevel);
+							}
+						} else {
+							restart();
+						}
+					}
+				}
+			}
+//End
+			function end() {
+				stopWatch();
+				GameButtons_Status.style.display = "none";
+				End_Status.style.display = "block";
+				document.getElementById("status").innerHTML = "End";
+				document.getElementById("console").innerHTML = "Nice!";
+				completedGame();
+				checkTimeHighScore();
+			}
+
+//Start
+			function start() {
+				if (Number(totalLevels) && Number(totalButtons)) {
+					currentLevel = 1
+					startWatch();
+					document.getElementById("status").innerHTML = "Game";
+					document.getElementById("console").innerHTML = "Level: " + currentLevel;
+
+					Home_Status.style.display = "none";
+					GameButtons_Status.style.display = "block";
+				} else {
+					notifyExecute(true, 1000, "Customize First");
+				}
+			}
+//Restart
+			function restart() {
+				stopWatch();
+				GameButtons_Status.style.display = "none";
+				Restart_Status.style.display = "block";
+				document.getElementById("status").innerHTML = "Restart";
+				document.getElementById("console").innerHTML = "Wrong";
+				attempt();
+			}
+
+//Customize
+			function customize() {
+				Home_Status.style.display = "none";
+				Customize_Status.style.display = "block";
+				document.getElementById("status").innerHTML = "Customize";
+				document.getElementById("console").innerHTML = ("Customize The Game." + "<br/>" + "If Total Numbers Is Greater Than 10 Press Left Shift To Add 10 To Number Pressed." + "<br/>" + "Example: ((With Out Shift + 5) = 5) And ((With Shift + 5) = 15)" + "<br/>" + "Also, 0 Is 10");
+			}
+
+			function customize_Total_Levels() {
+				let value = document.getElementById("TotalLevels").value;
+				if (value != "") {
+					totalLevels = Number(value);
+					document.getElementById("TotalLevels").placeholder = "Total Levels (" + document.getElementById("TotalLevels").value + ")";
+					document.getElementById("TotalLevels").value = "";
+				} else {
+					notifyExecute(true, 1000, "Can't Be '" + value + "'");
+				}
+			}
+
+			function customize_Total_Buttons() {
+				let value = document.getElementById("TotalButtons").value;
+				if (value != "" && value != 0) {
+					if (value <= 20) {
+						totalButtons = Number(value);
+						document.getElementById("TotalButtons").placeholder = "Total Buttons (" + document.getElementById("TotalButtons").value + ")";
+						document.getElementById("TotalButtons").value = "";
+					} else {
+						notifyExecute(true, 1000, "Can't Be Greater Than 20");
+					}
+				} else {
+					notifyExecute(true, 1000, "Can't Be '" + value + "'");
+				}
+			}
+
+			function customize_Create() {
+				if (totalLevels && totalButtons <= 20 && totalLevels != "" && totalButtons != "") {
+					levelInfo_Create();
+				} else {
+					notifyExecute(true, 2500, "Must Fill Out 'Total Levels' & 'Total Buttons' Properly");
+				}
+			}
+
+//Help
+			function help() {
+				Home_Status.style.display = "none";
+				Help_Status.style.display = "block";
+				document.getElementById("status").innerHTML = "Help";
+				document.getElementById("console").innerHTML = "1: Go Into 'Customize'" + "<br/>" + "2: Enter How Many 'Total Levels' & 'Total Buttons' You Want" + "<br/>" + "3: Confirm Them And Click 'Create New Combination'" + "<br/>" + "4: Press Start" + "<br/>" + "5: Guess The Correct Number(s) And Try To Beat Your High Score!" + "<br/> <br/>" + "Extra Stuff:" + "<br/>" + "Q = Start/Home (If In game)" + "<br/>" + "R = Reveal Hint";
+			}
+
+//Settings
+			function settings() {
+				Home_Status.style.display = "none";
+				Settings_Status.style.display = "block";
+				document.getElementById("status").innerHTML = "Settings";
+				document.getElementById("console").innerHTML = "V3";
+			}
+
+//Home
+			function home() {
+				currentLevel = 1;
+				hintsUsed = 0;
+				resetWatch();
+				Home_Status.style.display = "block";
+				Customize_Status.style.display = "none";
+				Help_Status.style.display = "none";
+				Settings_Status.style.display = "none";
+				GameButtons_Status.style.display = "none";
+				Restart_Status.style.display = "none";
+				End_Status.style.display = "none";
+				document.getElementById("status").innerHTML = "Home";
+				document.getElementById("console").innerHTML = "V3";
+			}
+
+//Set Up Game
+			function setUp() {
+				hintsUsed = 0;
+				Home_Status.style.display = "block";
+				Customize_Status.style.display = "none";
+				Help_Status.style.display = "none";
+				Settings_Status.style.display = "none";
+				GameButtons_Status.style.display = "none";
+				Restart_Status.style.display = "none";
+				End_Status.style.display = "none";
+				document.getElementById("status").innerHTML = "Home"
+				notifyExecute(true, 2500, "Welcome!")
+			}
+//Notify
+			var debounce_notifyExecute = false
+			function notifyExecute(display, time , text) {
+				if (display) {
+					document.getElementById("notify").innerHTML = text;
+					if (!debounce_notifyExecute) {
+						document.getElementById("notify").style.display = "block";
+						debounce_notifyExecute = true;
+                    	setTimeout(function () {
+							document.getElementById("notify").style.display = "none";
+							document.getElementById("notify").innerHTML = "Notification";
+							debounce_notifyExecute = false;
+						}, time);
+					}
+				} else {
+					document.getElementById("notify").style.display = "none";
+					document.getElementById("notify").innerHTML = "Notification";
+					debounce_notifyExecute = false;
+					time = 0;
+				}
+			}
+
+//Level Info Creator
+			var totalClones = 0;
+			function levelInfo_Create() {
+				if (totalClones > 0) {
+					for (var i = totalClones; i > 0; --i) {
+						let GameButtons_Status = document.getElementById("GameButtons_Status");
+						GameButtons_Status.removeChild(GameButtons_Status.lastElementChild);
+						totalClones = (totalClones - 1);
+					}
+
+					for (var i = 1; i <= totalLevels; ++i) {
+						levelInfo[i] = (Math.floor((Math.random() * Number(totalButtons)) + 1));
+					}
+
+					for (var i = 2; i <= totalButtons; ++i) {
+						let GameButtons_Status = document.getElementById("GameButtons_Status");
+						let clone = GameButtons_Status.lastElementChild.cloneNode(true);
+						GameButtons_Status.appendChild(clone);
+						GameButtons_Status.lastElementChild.id = (Number(GameButtons_Status.lastElementChild.id) + 1);
+						GameButtons_Status.lastElementChild.innerHTML = Number(GameButtons_Status.lastElementChild.id);
+						totalClones = (totalClones + 1);
+					}
+					resetHighScore();
+					resetAttempts();
+					resetGamesCompleted();
+				} else {
+					for (var i = 1; i <= totalLevels; ++i) {
+						levelInfo[i] = (Math.floor((Math.random() * Number(totalButtons)) + 1));
+					}
+
+					for (var i = 2; i <= totalButtons; ++i) {
+						let GameButtons_Status = document.getElementById("GameButtons_Status");
+						let clone = GameButtons_Status.lastElementChild.cloneNode(true);
+						GameButtons_Status.appendChild(clone);
+						GameButtons_Status.lastElementChild.id = (Number(GameButtons_Status.lastElementChild.id) + 1);
+						GameButtons_Status.lastElementChild.innerHTML = Number(GameButtons_Status.lastElementChild.id);
+						totalClones = (totalClones + 1);
+					}
+					resetHighScore();
+					resetAttempts();
+					resetGamesCompleted();
+				}
+			}
+
+//Number Filter
+			function isNumber(event_Code) {
+				event_Code = (event_Code) ? event_Code : window.event;
+				var charCode = (event_Code.which) ? event_Code.which : event_Code.keyCode;
+				if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+					return false;
+				}
+				return true;
+			}
+
+//Keycodes
+			var shiftLeft = false;
+
+			window.onkeydown = function(event) {
+            	var event_Code = (event.code.replace(/[^\d.-]/g, ''));
+				if (event_Code != "" && 0 <= Number(event_Code) && Number(event_Code) <= 9)  {
+
+					if (!shiftLeft) {
+						if (event_Code == 0) {
+                    		check(10);					
+						} else {
+							check(Number(event_Code));
+						}
+					} else if (shiftLeft) {
+						if (event_Code == 0) {
+                    		check(10 + 10);					
+						} else {
+							check(Number(event_Code) + 10);
+						}
+					}
+				}
+
+				if (event.code == "ShiftLeft") {
+					shiftLeft = true;
+				}
+				if (event.code == "KeyQ") {
+					let status = document.getElementById("status").innerHTML
+					if (status === "Restart") {
+						home();
+					} else if (status === "Home") {
+						start();
+					} else if (status === "End") {
+						home();
+					}
+				}
+				if (event.code == "KeyR") {
+					revealHint();
+				}
+			}
+
+			window.onkeyup = function(event) {
+				if (event.code == "ShiftLeft") {
+					shiftLeft = false;
+				}
+			}
+//Reveal Hint
+			function revealHint() {
+				if (document.getElementById("status").innerHTML === "Game") {
+					if (hintsUsed < (totalLevels / 4)) {
+						hintsUsed = (hintsUsed + 1);
+						let max = 10;
+						let randomNumber = Math.floor(Math.random() * max) + 1;
+						let levelInfo_currentLevel= (Number(levelInfo[currentLevel]))
+						let mathProblem = {};
+						let mathSolution = {};
+						let randomNumber_Operator = Math.floor(Math.random() * 4) + 1;
+						if (randomNumber_Operator == 1) {
+							mathProblem = (levelInfo_currentLevel + randomNumber);
+							mathSolution = "-";
+						} else if (randomNumber_Operator == 2) {
+							mathProblem = (levelInfo_currentLevel - randomNumber);
+							mathSolution = "+";
+						} else if (randomNumber_Operator == 3) {
+							mathProblem = (levelInfo_currentLevel * randomNumber);
+							mathSolution = "/";
+						} else if (randomNumber_Operator == 4) {
+							mathProblem = (levelInfo_currentLevel / randomNumber);
+							mathSolution = "*";
+						}
+
+						notifyExecute(true, 2500, (mathProblem + " " + mathSolution + " " + randomNumber + " = ?"))
+					} else {
+						notifyExecute(true, 2500, ("You Used Up " + hintsUsed + " / " + (totalLevels / 4)) + " Hints");
+					}
+				}
+			}
+
+//Stats
+
+//Check Time High Score
+				function checkTimeHighScore() {
+
+					var localMinutes = localStorage.timeHighScoreForMinutes;
+					var localSeconds = localStorage.timeHighScoreForSeconds;
+					var localMilliSeconds = localStorage.timeHighScoreForMilliSeconds;
+
+					var newMinutes = document.getElementById("minutes").innerHTML;
+					var newSeconds = document.getElementById("seconds").innerHTML;
+					var newMilliSeconds = document.getElementById("milliSeconds").innerHTML;
+
+					var newTime = newMinutes + newSeconds + newMilliSeconds;
+					var localTime = localMinutes + localSeconds + localMilliSeconds;
+
+					if(typeof(Storage) !== "undefined") {
+						newTime = newMinutes + newSeconds + newMilliSeconds;
+						localTime = localMinutes + localSeconds + localMilliSeconds;
+						if (newTime <= localTime) {
+							localStorage.timeHighScoreForMinutes = (newMinutes);
+							localStorage.timeHighScoreForSeconds = (newSeconds);
+							localStorage.timeHighScoreForMilliSeconds = (newMilliSeconds);
+							localTime = (newTime);
+						} else {
+							//Do Nothing..
+						}
+						localMinutes = localStorage.timeHighScoreForMinutes;
+						localSeconds = localStorage.timeHighScoreForSeconds;
+						localMilliSeconds = localStorage.timeHighScoreForMilliSeconds;
+						document.getElementById("timeOutputHighScore").innerHTML = "High Score Info:" + "<br/>" + "(Total Levels = " + totalLevels + ") & (Total Buttons = " + totalButtons + ")" + "<br/>" + "Time: " + localMinutes + " : " + localSeconds + " : " + localMilliSeconds + "<br/>" + document.getElementById("attemptsOutput").innerHTML + "<br/>" + "Hints Used: " + hintsUsed;
+						} else {
+						document.getElementById("timeOutputHighScore").innerHTML = "Sorry, your browser does not support web storage...";
+ 					}
+				}
+
+//Attempt
+				function attempt() {
+					if(typeof(Storage) !== "undefined") {
+						if (localStorage.attempts) {
+							localStorage.attempts = Number(localStorage.attempts) + 1;
+						} else {
+							localStorage.attempts = 1;
+						}
+					document.getElementById("attemptsOutput").innerHTML = "Attempt(s): " + localStorage.attempts;
+					} else {
+						document.getElementById("attemptsOutput").innerHTML = "Sorry, your browser does not support web storage...";
+ 					}
+				}
+
+//Completed Game
+				function completedGame() {
+					if(typeof(Storage) !== "undefined") {
+						if (localStorage.gamesCompleted) {
+							localStorage.gamesCompleted = Number(localStorage.gamesCompleted) + 1;
+						} else {
+							localStorage.gamesCompleted = 1;
+						}
+					document.getElementById("gamesCompletedOutput").innerHTML = "Game(s) Completed: " + localStorage.gamesCompleted;
+					} else {
+						document.getElementById("gamesCompletedOutput").innerHTML = "Sorry, your browser does not support web storage...";
+ 					}
+				}
+
+//Load Stats Saves
+				function loadStatsSaves() {
+
+					var localMinutes = localStorage.timeHighScoreForMinutes;
+					var localSeconds = localStorage.timeHighScoreForSeconds;
+					var localMilliSeconds = localStorage.timeHighScoreForMilliSeconds;
+
+					var newMinutes = document.getElementById("minutes").innerHTML;
+					var newSeconds = document.getElementById("seconds").innerHTML;
+					var newMilliSeconds = document.getElementById("milliSeconds").innerHTML;
+
+					var newTime = newMinutes + newSeconds + newMilliSeconds;
+					var localTime = localMinutes + localSeconds + localMilliSeconds;
+
+					document.getElementById("timeOutputHighScore").innerHTML = "Saved High Score Info Will Show Up Here.";
+
+					document.getElementById("attemptsOutput").innerHTML = "Attempt(s): " + localStorage.attempts;
+
+					document.getElementById("gamesCompletedOutput").innerHTML = "Game(s) Completed: " + localStorage.gamesCompleted;
+				}
+
+//Reset Stats Saves
+
+//Reset High Score
+				function resetHighScore() {
+					var localMinutes = localStorage.timeHighScoreForMinutes;
+					var localSeconds = localStorage.timeHighScoreForSeconds;
+					var localMilliSeconds = localStorage.timeHighScoreForMilliSeconds;
+
+					var newMinutes = document.getElementById("minutes").innerHTML;
+					var newSeconds = document.getElementById("seconds").innerHTML;
+					var newMilliSeconds = document.getElementById("milliSeconds").innerHTML;
+
+					var newTime = newMinutes + newSeconds + newMilliSeconds;
+					var localTime = localMinutes + localSeconds + localMilliSeconds;
+
+					localStorage.timeHighScoreForMinutes = ("undefined");
+					localStorage.timeHighScoreForSeconds = ("undefined");
+					localStorage.timeHighScoreForMilliSeconds = ("undefined");
+					localTime = ("undefined");
+					newAttempts = "High Score Has Been Reset.";
+					document.getElementById("timeOutputHighScore").innerHTML = newAttempts;
+
+					setTimeout(function () {
+						document.getElementById("timeOutputHighScore").innerHTML = "Saved High Score Info Will Show Up Here.";
+					}, 1000);
+				}
+
+//Reset Attempts
+				function resetAttempts() {
+					localStorage.attempts = ("0");
+					newAttempts = "Attempt(s) Have Been Reset.";
+					document.getElementById("attemptsOutput").innerHTML = newAttempts;
+					setTimeout(function () {
+						newAttempts = "Attempt(s): 0";
+						document.getElementById("attemptsOutput").innerHTML = newAttempts;
+					}, 1000);
+				}
+
+//Reset Games Completed
+				function resetGamesCompleted() {
+					localStorage.gamesCompleted = ("0");
+					newGamesCompleted = "Game(s) Completed Have Been Reset.";
+					document.getElementById("gamesCompletedOutput").innerHTML = newGamesCompleted;
+
+					setTimeout(function () {
+						newGamesCompleted = "Saved Game(s) Completed Will Show Up Here.";
+						document.getElementById("gamesCompletedOutput").innerHTML = newGamesCompleted;
+					}, 1000);
+				}
+
+//Stop Watch
+				var timer = null;
+				var minutes_txt = document.getElementById("minutes");
+				var minutes = Number(minutes_txt.innerHTML);
+				var seconds_txt = document.getElementById("seconds");
+				var seconds = Number(seconds_txt.innerHTML);
+				var milliSeconds_txt = document.getElementById("milliSeconds"); 
+				var milliSeconds = Number(milliSeconds_txt.innerHTML);
+
+				function stopTimeMillisecondsonds(timer) {
+					if (timer) { 
+						clearInterval(timer);
+						return timer;
+					}
+						else return timer;
+				}
+
+					function startTimeMillisecondsonds() {
+						var currDate = new Date();
+						return currDate.getTime();	
+					}
+
+					function getElapsedTimeMillisecondsonds(startMillisecondsonds) {
+						if (startMillisecondsonds > 0) {
+							var currDate = new Date();
+							elapsedMillisecondsonds = (currDate.getTime() - startMillisecondsonds);
+							return elapsedMillisecondsonds;
+						}
+						else {
+							return elapsedMillisecondsonds = 0;
+						}
+					}
+// START TIMER
+					function startWatch() { 
+								timer = stopTimeMillisecondsonds(timer); 
+								var startMillisecondsonds = startTimeMillisecondsonds();
+								timer = setInterval(function() { 
+								var elapsedMillisecondsonds = getElapsedTimeMillisecondsonds(startMillisecondsonds); 
+								if (milliSeconds < 10) {
+									milliSeconds_txt.innerHTML = "00" + milliSeconds; 
+								}
+								else if (milliSeconds < 100) {
+									milliSeconds_txt.innerHTML = "0" + milliSeconds;
+								}
+								else {
+									milliSeconds_txt.innerHTML = milliSeconds;
+								}
+								if (seconds < 10) {
+									seconds_txt.innerHTML = "0" + seconds;
+								}
+								else {
+								seconds_txt.innerHTML = seconds; 
+								}
+								minutes_txt.innerHTML = minutes; 
+								milliSeconds = elapsedMillisecondsonds;
+								if (minutes >= 59 && seconds >=59 && milliSeconds > 900) {
+									timer = stopTimeMillisecondsonds(timer);
+									return true;
+								}
+								if (seconds > 59) {
+									seconds = 0;
+									minutes++;
+								}
+								if (milliSeconds > 999) {
+									milliSeconds = 0;
+									seconds++;
+									startWatch();
+								}
+							}, 10);
+					}
+// STOP TIMER
+					function stopWatch() {
+							timer = stopTimeMillisecondsonds(timer);
+							return true;
+					}
+// REZERO TIMER
+					function resetWatch() {
+							timer = stopTimeMillisecondsonds(timer);
+							milliSeconds_txt.innerHTML = "000"; 
+							milliSeconds = 0;
+							seconds_txt.innerHTML = "00"; 
+							seconds = 0;
+							minutes_txt.innerHTML = "0"; 
+							minutes = 0;
+							return true;
+					}
+
+        </script>
+<!--Javascript End-->
+	</body>
+</html> 
